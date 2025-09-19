@@ -1,2 +1,0 @@
-# Moda-Mina
-Clothing store

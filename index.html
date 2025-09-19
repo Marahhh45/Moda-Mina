@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Moda Mina — Shop</title>
+<meta name="description" content="Modest Wear — elegant modest clothing showcase with cart, save-for-later, and WhatsApp ordering."/>
+<link rel="icon" href="data:," />
+<style>
+  /* 🌙 Dark theme override */
+/* 🌌 Navy + Purple Dark Theme */
+.dark {
+  --bg: #0b132b;        /* deep navy background */
+  --text: #e0e0ff;      /* soft lavender text */
+  --card-bg: #1c2541;   /* navy card background */
+  --accent: #9d4edd;    /* purple accent */
+  --accent-hover: #7b2cbf; /* darker purple hover */
+  --border: #3a3a6a;    /* muted navy border */
+  --muted: #aaa;        /* lighter muted text */
+}
+
+
+  :root{
+    --bg: #faf8f6;
+    --panel: #ffffff;
+    --muted: #6b7280;
+    --accent: #7c6cff;
+    --accent-2: #ff7f93;
+    --gold: #b8860b;
+    --radius: 12px;
+    --shadow: 0 12px 30px rgba(18,23,40,.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:var(--bg); color: #07203a; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:1200px; margin:28px auto; padding:18px; display:grid; grid-template-columns: 1fr 340px; gap:20px; align-items:start; }
+
+  header.header{ grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .brand { display:flex; gap:12px; align-items:center; }
+  .logo{ width:56px; height:56px; border-radius:12px; display:grid; place-items:center; color:white; font-weight:800; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:var(--shadow); }
+  .headline { font-size:1.15rem; font-weight:700; letter-spacing:0.2px; }
+  .controls { display:flex; gap:8px; align-items:center; }
+
+  .btn { border:0; background:var(--accent); color:white; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; transition:transform 160ms; }
+  .btn.secondary { background:transparent; color:var(--accent); border:1px solid rgba(124,108,255,.12); }
+  .btn.icon { padding:8px; width:44px; height:44px; display:grid; place-items:center; border-radius:10px; }
+
+  .products { display:grid; grid-template-columns: repeat(2, 1fr); gap:18px; }
+  @media (max-width:900px){ .wrap{ grid-template-columns: 1fr; } .products{ grid-template-columns: repeat(1,1fr); } }
+
+  .card{ background:var(--panel); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+  .media{ position:relative; height:320px; overflow:hidden; background:#f4f4f6; display:flex; align-items:center; justify-content:center; }
+  .media img{ max-width:100%; max-height:100%; object-fit:contain; display:block; transition:transform 350ms; }
+  .card-body{ padding:14px 16px; display:flex; flex-direction:column; gap:8px; }
+  .title{ font-weight:700; font-size:1.05rem; }
+  .desc{ color:var(--muted); font-size:0.92rem; line-height:1.3; }
+  .meta{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  .price{ color:var(--gold); font-weight:800; font-size:1.05rem; }
+  .actions{ display:flex; gap:8px; margin-top:10px; }
+
+  .sidebar { position:sticky; top:18px; display:flex; flex-direction:column; gap:12px; }
+  .panel{ background:var(--panel); border-radius:12px; padding:12px; box-shadow:var(--shadow); }
+  .cart-list, .saved-list { display:flex; flex-direction:column; gap:8px; max-height:360px; overflow:auto; padding-right:6px; }
+
+  .item-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; padding:8px; border-radius:8px; background: linear-gradient(90deg, rgba(255,255,255,0.6), transparent); }
+  .item-row .left{ display:flex; gap:8px; align-items:center; }
+  .thumb{ width:56px; height:56px; border-radius:8px; object-fit:cover; }
+
+  .qty{ display:flex; gap:6px; align-items:center; }
+  .qty button{ padding:6px 8px; border-radius:6px; border:0; cursor:pointer; background:rgba(0,0,0,0.06); }
+
+  .modal-backdrop{ position:fixed; inset:0; display:none; background:rgba(0,0,0,.45); align-items:center; justify-content:center; z-index:999; }
+  .modal{ width:720px; max-width:94%; background:var(--panel); border-radius:12px; box-shadow:var(--shadow); padding:18px; display:grid; grid-template-columns: 360px 1fr; gap:12px; }
+  .modal .md-media{ height:360px; display:flex;align-items:center;justify-content:center;background:#f6f6f8;border-radius:8px; overflow:hidden; }
+  .close{ border:0; background:transparent; font-size:20px; cursor:pointer; }
+
+  .muted{ color:var(--muted); }
+  .center{ text-align:center }
+  a.whatsapp{ display:inline-block; text-decoration:none; background:#25D366; color:white; padding:10px 12px; border-radius:8px; }
+
+  @media print{ .modal-backdrop,.btn,.controls{ display:none !important; } }
+</style>
+</head>
+<body>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('modest-theme') || 'light')</script>
+
+<div class="wrap" role="application" aria-labelledby="brand-title">
+  <header class="header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">MM</div>
+      <div>
+        <div id="brand-title" class="headline">Moda Mina</div>
+        <div class="muted">Elegant modest fashion — curated</div>
+      </div>
+    </div>
+
+    <div class="controls" role="region" aria-label="global controls">
+      <input id="search" placeholder="Search products..." style="padding:10px;border-radius:10px;border:1px solid rgba(11,18,32,.06)" aria-label="search products" />
+      <button id="theme-btn" class="btn secondary">Dark Mode 🌙</button>
+
+      <button class="btn icon" id="cartToggle" aria-label="open cart">🛒</button>
+    </div>
+  </header>
+
+  <!-- Left: products -->
+  <main>
+    <section style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0">Featured Collection</h2>
+    </section>
+
+    <!-- ===== STATIC PRODUCT CARDS (plain <img src="...">) ===== -->
+    <section class="products" id="productGrid" aria-live="polite">
+      <!-- Card 1 -->
+      <article class="card" data-id="p1" data-title="Rosewood Abaya — Midnight" data-price="80,000" data-desc="Embroidered crepe abaya with scalloped sleeve detail, full length, lightweight flow. Available in S/M/L.." data-img="Abaya1.jpeg">
+        <div class="media">
+          <img src="Abaya1.jpeg" alt="rosewood Abaya — Midnight" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Rosewood Elegance Abaya</div>
+          <div class="desc">Embroidered crepe abaya with scalloped sleeve detail, full length, lightweight flow. Available in S/M/L.</div>
+          <div class="meta"><div class="price">₦80,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p1">View</button>
+            <button class="btn" data-action="add" data-id="p1">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p1">Save</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="card" data-id="p2" data-title="Tiered maxi skirt" data-price="7000" data-desc="Tiered maxi skirt, Designed in a rich cobalt blue, offering both comfort
+             and modest elegance. Available in S/M/L." data-img="Cottageskirtmodestfit.jpeg">
+        <div class="media">
+          <img src="Cottageskirtmodestfit.jpeg" alt="Tiered maxi skirt" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Tiered maxi skirt</div>
+          <div class="desc">Tiered maxi skirt, Designed in a rich cobalt blue, offering both comfort
+             and modest elegance. Available in S/M/L.</div>
+          <div class="meta"><div class="price">₦7,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p2">View</button>
+            <button class="btn" data-action="add" data-id="p2">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p2">Save</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="card" data-id="p3" data-title="Maxi Dress — Olive" data-price="72" data-desc="Flowy maxi dress with modest cut and comfortable waistline. Machine-washable." data-img="https://images.unsplash.com/photo-1541269627721-57ad2e64f7a5?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="PashminaScarves.jpeg" alt="Maxi Dress — Olive" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Pashmina Scarves</div>
+          <div class="desc">Paisley jacquard pashmina scarves in rich colors – soft, lightweight, and effortlessly elegant.</div>
+          <div class="meta"><div class="price">₦7,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p3">View</button>
+            <button class="btn" data-action="add" data-id="p3">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p3">Save</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="card" data-id="p4" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="DubaiAbayaLatest2022.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Dubai Abaya</div>
+          <div class="desc">Elegant embroidered abayas in dusty pink and classic black, 
+            featuring intricate back detailing and tassel accents—perfect for timeless, culturally inspired style.</div>
+          <div class="meta"><div class="price">₦65,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p4">View</button>
+            <button class="btn" data-action="add" data-id="p4">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p4">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 5 -->
+      <article class="card" data-id="p5" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="Twopiece1.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Modest Two-piece</div>
+          <div class="desc">Crafted from a luxurious, flowing crepe fabric with a subtle sheen, 
+            our designs offer elegant drapes and comfortable wear for the modern woman.</div>
+          <div class="meta"><div class="price"> ₦75,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p5">View</button>
+            <button class="btn" data-action="add" data-id="p5">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p5">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 6 -->
+      <article class="card" data-id="p6" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="Twopiece2.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Sequin Edge Two-Piece Set</div>
+          <div class="desc">A chic purple co-ord set featuring a long tunic top with sequin accents
+             on the shoulder and hemline, paired with wide-leg trousers for a flowy, elegant fit.</div>
+          <div class="meta"><div class="price">₦55,00</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p6">View</button>
+            <button class="btn" data-action="add" data-id="p6">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p6">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 7 -->
+      <article class="card" data-id="p7" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="Twopiece3.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Side-Ruched Elegance Set</div>
+          <div class="desc">A chic two-piece co-ord set in olive green, featuring a
+             flowy wide-leg trouser paired with a long-sleeve top.</div>
+          <div class="meta"><div class="price">₦75,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p7">View</button>
+            <button class="btn" data-action="add" data-id="p7">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p7">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 8 -->
+      <article class="card" data-id="p8" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="Flared Modal and Cotton Skirt - Maxi Skirts - Women  _ Shukr Clothing.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">High-Waist Flared Maxi Skirt</div>
+          <div class="desc">Elegant black maxi skirt designed with a structured high waistband, 
+            side zipper, and button detail.</div>
+          <div class="meta"><div class="price">₦22,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p8">View</button>
+            <button class="btn" data-action="add" data-id="p8">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p8">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 9 -->
+      <article class="card" data-id="p9" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="Jeanskirt1.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Denim A-line wrap skirt</div>
+          <div class="desc"> A-line cut midi skirt made of denim fabric, 
+            featuring a wrap-around design with a tie closure at the side of the waist.</div>
+          <div class="meta"><div class="price">₦23,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p9">View</button>
+            <button class="btn" data-action="add" data-id="p9">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p9">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 10 -->
+      <article class="card" data-id="p10" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="The Ranch High Waist Denim Skirt.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Flared mid-length skirt</div>
+          <div class="desc">A modest, mid-length blue skirt with a smooth,elegant design, perfect for various occasions.</div>
+          <div class="meta"><div class="price">₦134,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p10">View</button>
+            <button class="btn" data-action="add" data-id="p10">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p10">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 11 -->
+      <article class="card" data-id="p11" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="baggy jean 2.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">High-rise, wide-leg jeans. </div>
+          <div class="desc">These are wide-leg jeans, characterized by a silhouette that is relaxed
+             and flares out from the hip or thigh down to the hem.</div>
+          <div class="meta"><div class="price">₦27,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p11">View</button>
+            <button class="btn" data-action="add" data-id="p11">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p11">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 12 -->
+      <article class="card" data-id="p12" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="Altuzarra Fashion Collections For Women _ Moda Operandi.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Flared Midi Skirt</div>
+          <div class="desc">Elegant, modest high-waisted skirt with a full silhouette.</div>
+          <div class="meta"><div class="price">₦19,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p12">View</button>
+            <button class="btn" data-action="add" data-id="p12">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p12">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 13 -->
+      <article class="card" data-id="p13" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="baggy jean1.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Baggy jean</div>
+          <div class="desc">Baggy jeans feature a loose, laid-back design e loose-fit, high-waisted, wide-leg denim trousers
+            with extra room in the thighs and knees.
+          </div>
+          <div class="meta"><div class="price">₦22,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p13">View</button>
+            <button class="btn" data-action="add" data-id="p13">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p13">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 14 -->
+      <article class="card" data-id="p14" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="baggy jean 3.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Dark grey denim color Baggy Jeans</div>
+          <div class="desc">These are a classic style of denim pants known for their loose and 
+            relaxed fit throughout the leg, especially in the thighs, knees, and calves.</div>
+          <div class="meta"><div class="price">₦22,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p14">View</button>
+            <button class="btn" data-action="add" data-id="p14">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p14">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 15 -->
+      <article class="card" data-id="p15" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="4 Stücke_Set Damen Langarm Rundhals Slim Fit Langarm T-Shirt Set, geeignet für Frühling und Herbst.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Women's Basic Long-Sleeve Crew Neck T-shirts</div>
+          <div class="desc">Cozy up in our Women's Basic Long-Sleeve Crew Neck T-shirts! Soft breathable
+            fabric and a relaxed fit  make it perfect for everyday wear.</div>
+          <div class="meta"><div class="price">₦4,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p15">View</button>
+            <button class="btn" data-action="add" data-id="p15">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p15">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 16 -->
+      <article class="card" data-id="p16" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="chiffon scarf.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title"> Ombre Chiffon Scarves </div>
+          <div class="desc">Elevate your style with our  Ombre Chiffon Scarves! Soft, luxurious
+            fabric features a gradient ombre effect, adding a touch of sophistication to any outfit.</div>
+          <div class="meta"><div class="price">₦4,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p16">View</button>
+            <button class="btn" data-action="add" data-id="p16">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p16">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 17 -->
+      <article class="card" data-id="p17" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="crinkle scarves.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Crinkle Scarf</div>
+          <div class="desc">These scarves are characterized by their crinkled texture, offering 
+            a stylish and often lightweight option for various outfits or as a hijab. They are available in 
+            a range of colors, as depicted in the image.</div>
+          <div class="meta"><div class="price">₦2,300</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p17">View</button>
+            <button class="btn" data-action="add" data-id="p17">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p17">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 18 -->
+      <article class="card" data-id="p18" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="undercaps.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Inner hijabs or Underscarves</div>
+          <div class="desc"> They are made of a soft, stretchy fabric, designed to provide coverage
+             and keep the hair in place under an outer headscarf. They feature an elasticized opening, 
+             likely for a comfortable and secure fit around the face.</div>
+          <div class="meta"><div class="price">₦10,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p18">View</button>
+            <button class="btn" data-action="add" data-id="p18">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p18">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 19 -->
+      <article class="card" data-id="p19" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="sweatshirt.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Sweatshirt</div>
+          <div class="desc">Cozy up in our cream-coloured Sweatshirt! Soft, plush fabric and a relaxed fit makes
+            it perfect for lounging casual wear.</div>
+          <div class="meta"><div class="price">₦17,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p19">View</button>
+            <button class="btn" data-action="add" data-id="p19">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p19">Save</button>
+          </div>
+        </div>
+      </article>
+
+        <!-- Card 20 -->
+      <article class="card" data-id="p20" data-title="Layered Skirt — Sand" data-price="48" data-desc="Light & breathable layered skirt with full coverage. Pairs well with tunics and abayas." data-img="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=max">
+        <div class="media">
+          <img src="joggers.jpeg" alt="Layered Skirt — Sand" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="title">Wide-leg Joggrers or Sweatpants</div>
+          <div class="desc">Elevate your comfort game with our Wide-leg Joggrers! Soft,cozy fabric and relaxed fit provide ultimate ease.</div>
+          <div class="meta"><div class="price">₦34,000</div></div>
+          <div class="actions">
+            <button class="btn secondary" data-action="quick" data-id="p20">View</button>
+            <button class="btn" data-action="add" data-id="p20">Add to Cart</button>
+            <button class="btn secondary" data-action="save" data-id="p20">Save</button>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- Right: sidebar cart & saved -->
+  <aside class="sidebar" aria-label="cart and saved items">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>My Cart</strong>
+        <small class="muted" id="cartCount">0</small>
+      </div>
+      <div class="cart-list" id="cartList" aria-live="polite"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+        <button class="btn" id="checkoutBtn">Checkout</button>
+        <a id="waOrder" class="whatsapp" href="#" target="_blank" rel="noopener">Order via WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <strong>Saved for Later</strong>
+      <div class="saved-list" id="savedList" aria-live="polite"></div>
+    </div>
+
+    <div class="panel center muted">
+      <small>Built with ❤️ • Accessible • Responsive</small>
+    </div>
+  </aside>
+</div>
+
+<!-- Product modal -->
+<div class="modal-backdrop" id="modal" aria-hidden="true" role="dialog">
+  <div class="modal" role="document" aria-labelledby="modal-title">
+    <div class="md-media">
+      <img id="md-img" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain" />
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div>
+          <h3 id="md-title">Title</h3>
+          <div class="muted" id="md-sub">Category — Fabric</div>
+        </div>
+        <button class="close" id="closeModal" aria-label="close modal">✖</button>
+      </div>
+      <p id="md-desc" style="margin-top:12px" class="muted">Long description</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div class="price" id="md-price">₦0</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn secondary" id="saveModalBtn">Save</button>
+          <button class="btn" id="addModalBtn">Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  
+  // Get the theme button
+  const themeBtn = document.getElementById("theme-btn");
+
+ // Toggle dark/light mode
+  themeBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    themeBtn.textContent = document.body.classList.contains("dark") 
+      ? "Light Mode ☀️" 
+      : "Dark Mode 🌙";
+  });
+
+
+/* ========= product data used by cart logic (keeps in sync with static cards) ========= */
+const PRODUCTS = [
+  { id:'p1', title:'Rosewood Elegance Abaya', price:80000, category:'Abaya', fabric:'Matte Crepe', img: 'data:image/jpeg;base64,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', desc:'Elegant satin abaya with delicate pleat detail, full length, breathable lining. Available in S/M/L.' },
+  { id:'p2', title:'Tiered Maxi Skirt', price:7000, category:'Skirt', fabric:'Cotton', img:'data:image/jpeg;base64,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', desc:'Lightweight chiffon hijab with subtle embroidery on edges. One size fits most.' },
+  { id:'p3', title:'Pashmina Scarves', price:7000, category:'Scarves', fabric:'Cashmere', img:'data:image/jpeg;base64,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', desc:'Paisley jacquard pashmina scarves in rich colors – soft, lightweight, and effortlessly elegant.' },
+  { id:'p4', title:'Dubai Abaya', price:65000, category:'Abaya', fabric:'Dubai Crepe', img:'data:image/jpeg;base64,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', desc:'Elegant embroidered abayas in dusty pink and classic black, featuring intricate back detailing and tassel accents—perfect for timeless, culturally inspired style.'}
+ ];
+PRODUCTS.push({
+  id: "p5",
+  title: "Modest Two-piece",
+  price: 75000,
+  category:'Two-piece',
+  fabric:'Crepe',
+  desc: 'Crafted from a luxurious, flowing crepe fabric with a subtle sheen, our designs offer elegant drapes and comfortable wear for the modern woman.',
+  img: 'Twopiece1.jpeg'
+});
+PRODUCTS.push({
+  id: "p6",
+  title: "Sequin Edge Two-piece set",
+  price: 55000,
+  category:'Two-piece',
+  fabric:'Crepe',
+  desc: 'A chic purple co-ord set featuring a long tunic top with sequin accents on the shoulder and hemline, paired with wide-leg trousers for a flowy, elegant fit.',
+  img: 'Twopiece2.jpeg'
+});
+PRODUCTS.push({
+  id: "p7",
+  title: "Side-Ruched Elegance Set",
+  price: 75000,
+  category:'Two-piece',
+  fabric:'Crepe',
+  desc: 'A chic two-piece co-ord set in olive green, featuring a flowy wide-leg trouser paired with a long-sleeve top.',
+  img: 'Twopiece3.jpeg'
+});
+PRODUCTS.push({
+  id: "p8",
+  title: "High-Waist Flared Maxi Skirt",
+  price: 22000,
+  category:'Skirt',
+  fabric:'Modal and cotton blend',
+  desc: "Elegant black maxi skirt designed with a structured high waistband, side zipper, and button detail.",
+  img: 'Flared Modal and Cotton Skirt - Maxi Skirts - Women  _ Shukr Clothing.jpeg'
+});
+PRODUCTS.push({
+  id: "p9",
+  title: "Denim A-line wrap skirt",
+  price: 23000,
+  category:'Skirt',
+  fabric:'Denim',
+  desc: "A-line cut midi skirt made of denim fabric, featuring a wrap-around design with a tie closure at the side of the waist.",
+  img: 'Jeanskirt1.jpeg'
+});
+PRODUCTS.push({
+  id: "p10",
+  title: "Flared mid-length skirt",
+  price: 134000,
+  category:'Skirt',
+  fabric:'Denim',
+  desc: "A modest, mid-length blue skirt with a smooth,elegant design, perfect for various occasions.",
+  img: 'The Ranch High Waist Denim Skirt.jpeg'
+});
+PRODUCTS.push({
+  id: "p11",
+  title: "High-rise, wide-leg jeans.",
+  price: 27000,
+  category:'Pants',
+  fabric:'Denim',
+  desc: "These are wide-leg jeans, characterized by a silhouette that is relaxed and flares out from the hip or thigh down to the hem.",
+  img: 'baggy jean 2.jpeg'
+});
+PRODUCTS.push({
+  id: "p12",
+  title: "Flared Midi Skirt.",
+  price: 19000,
+  category:'Skirt',
+  fabric:'Cotton',
+  desc: "Elegant, modest high-waisted skirt with a full silhouette.",
+  img: 'Altuzarra Fashion Collections For Women _ Moda Operandi.jpeg'
+});
+PRODUCTS.push({
+  id: "p13",
+  title: "Baggy jean.",
+  price: 22000,
+  category:'Pants',
+  fabric:'Denim',
+  desc: "Baggy jeans feature a loose, laid-back design e loose-fit, high-waisted, wide-leg denim trousers with extra room in the thighs and knees.",
+  img: 'baggy jean1.jpeg'
+});
+PRODUCTS.push({
+  id: "p14",
+  title: "Dark grey denim color Baggy Jeans.",
+  price: 22000,
+  category:'Pants',
+  fabric:'Denim',
+  desc: "These are a classic style of denim pants known for their loose and relaxed fit throughout the leg, especially in the thighs, knees, and calves.",
+  img: 'baggy jean 3.jpeg'
+});
+PRODUCTS.push({
+  id: "p15",
+  title: "Women's Basic Long-Sleeve Crew Neck T-shirts.",
+  price: 4000,
+  category:'Top',
+  fabric:' Polyester and Elastane',
+  desc: "These are a classic style of denim pants known for their loose and relaxed fit throughout the leg, especially in the thighs, knees, and calves.",
+  img: '4 Stücke_Set Damen Langarm Rundhals Slim Fit Langarm T-Shirt Set, geeignet für Frühling und Herbst.jpeg'
+});
+PRODUCTS.push({
+  id: "p16",
+  title: "Ombre Chiffon Scarves.",
+  price: 4000,
+  category:'Scarves',
+  fabric:'Chiffon',
+  desc: "Elevate your style with our Ombre Chiffon Scarves! Soft, luxurious fabric features a gradient ombre effect, adding a touch of sophistication to any outfit.",
+  img: 'chiffon scarf.jpeg'
+});
+PRODUCTS.push({
+  id: "p17",
+  title: "Crinkle Scarf.",
+  price: 2300,
+  category:'Scarves',
+  fabric:'Cotton crinkle',
+  desc: "These scarves are characterized by their crinkled texture, offering a stylish and often lightweight option for various outfits or as a hijab. They are available in a range of colors, as depicted in the image.",
+  img: 'crinkle scarves.jpeg'
+});
+PRODUCTS.push({
+  id: "p18",
+  title: "Inner hijabs or Underscarves.",
+  price: 10000,
+  category:'Scarves',
+  fabric:'Cotton',
+  desc: "They are made of a soft, stretchy fabric, designed to provide coverage and keep the hair in place under an outer headscarf. They feature an elasticized opening, likely for a comfortable and secure fit around the face.",
+  img: 'undercaps.jpeg'
+});
+PRODUCTS.push({
+  id: "p19",
+  title: "Sweatshirt.",
+  price: 17000,
+  category:'Top',
+  fabric:'Cotton',
+  desc: "Cozy up in our cream-coloured Sweatshirt! Soft, plush fabric and a relaxed fit makes it perfect for lounging casual wear.",
+  img: 'sweatshirt.jpeg'
+});
+PRODUCTS.push({
+  id: "p20",
+  title: "Wide-leg Joggrers or Sweatpants.",
+  price: 34000,
+  category:'Pants',
+  fabric:'Fleece',
+  desc: "Elevate your comfort game with our Wide-leg Joggrers! Soft,cozy fabric and relaxed fit provide ultimate ease.",
+  img: 'joggers.jpeg'
+});
+
+
+/* ========= state ========= */
+let cart = JSON.parse(localStorage.getItem('modest_cart') || '[]');
+let saved = JSON.parse(localStorage.getItem('modest_saved') || '[]');
+const WA_PHONE = '+2348149162514'; // <<< replace with your WhatsApp number (international, no +)
+
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const create = (tag) => document.createElement(tag);
+
+function persist(){ localStorage.setItem('modest_cart', JSON.stringify(cart)); localStorage.setItem('modest_saved', JSON.stringify(saved)); }
+
+/* ===== Modal ===== */
+const modalBackdrop = $('#modal'), mdImg = $('#md-img'), mdTitle = $('#md-title'), mdDesc = $('#md-desc'), mdSub = $('#md-sub'), mdPrice = $('#md-price');
+let currentModalProduct = null;
+function openModal(productId){
+  const p = PRODUCTS.find(x=>x.id===productId); if(!p) return;
+  currentModalProduct = p;
+  mdImg.src = p.img;
+  mdTitle.innerText = p.title;
+  mdSub.innerText = `${p.category} — ${p.fabric}`;
+  mdDesc.innerText = p.desc;
+  mdPrice.innerText = `₦${p.price}`;
+  modalBackdrop.style.display = 'flex'; modalBackdrop.removeAttribute('aria-hidden');
+}
+$('#closeModal').addEventListener('click', ()=> { modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); });
+
+/* ===== cart & saved logic ===== */
+const cartList = $('#cartList'), savedList = $('#savedList'), cartCount = $('#cartCount'), waOrder = $('#waOrder');
+
+function addToCart(productId, qty = 1){
+  const p = PRODUCTS.find(x=>x.id===productId); if(!p) return;
+  const found = cart.find(i=>i.id===productId);
+  if(found) found.qty += qty; else cart.unshift({ id: p.id, title: p.title, price: p.price, thumb: p.img, qty });
+  persist(); renderCart();
+}
+function saveForLater(productId){
+  const p = PRODUCTS.find(x=>x.id===productId); if(!p) return;
+  if(!saved.some(s=>s.id===productId)) saved.unshift({ id:p.id, title:p.title, price:p.price, thumb:p.img });
+  persist(); renderSaved();
+}
+function removeFromCart(productId){
+  cart = cart.filter(i=>i.id!==productId);
+  persist(); renderCart();
+}
+function removeFromSaved(productId){
+  saved = saved.filter(i=>i.id!==productId);
+  persist(); renderSaved();
+}
+function changeQty(productId, delta){
+  const item = cart.find(i=>i.id===productId); if(!item) return;
+  item.qty = Math.max(1, item.qty + delta); persist(); renderCart();
+}
+
+function updateWaLink(){
+  if(!cart.length) { waOrder.href = '#'; waOrder.setAttribute('aria-disabled','true'); return; }
+  let text = `Hello Moda Mina, I would like to order:%0A`;
+  cart.forEach(i => text += `• ${i.title} x${i.qty} — ₦${i.price * i.qty}%0A`);
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  text += `%0ATotal: ₦${total}%0AName:%0APhone:%0AShipping Address:%0A`;
+  waOrder.href = `https://wa.me/${WA_PHONE}?text=${text}`;
+  waOrder.removeAttribute('aria-disabled');
+}
+
+function renderCart(){
+  cartList.innerHTML = '';
+  if(!cart.length) cartList.innerHTML = `<div class="muted center">Your cart is empty</div>`;
+  cart.forEach(i=>{
+    const row = create('div'); row.className='item-row';
+    row.innerHTML = `<div class="left"><img class="thumb" src="${i.thumb}" alt="${i.title}" /><div><strong>${i.title}</strong><div class="muted">₦${i.price}</div></div></div>
+      <div style="display:flex;align-items:center"><div class="qty"><button aria-label="decrease" data-q="-1" data-id="${i.id}">−</button><div style="width:28px;text-align:center">${i.qty}</div><button aria-label="increase" data-q="1" data-id="${i.id}">+</button></div>
+      <button style="margin-left:10px" data-remove="${i.id}" class="btn secondary">Remove</button></div>`;
+    cartList.appendChild(row);
+  });
+  cartCount.innerText = cart.reduce((s,i)=>s+i.qty,0);
+  updateWaLink();
+}
+
+function renderSaved(){
+  savedList.innerHTML = '';
+  if(!saved.length) savedList.innerHTML = `<div class="muted center">Nothing saved</div>`;
+  saved.forEach(s=>{
+    const r = create('div'); r.className='item-row';
+    r.innerHTML = `<div class="left"><img class="thumb" src="${s.thumb}" alt="${s.title}"/><div><strong>${s.title}</strong><div class="muted">₦${s.price}</div></div></div>
+      <div style="display:flex;gap:6px"><button data-move="${s.id}" class="btn">Add</button><button data-sremove="${s.id}" class="btn secondary">Remove</button></div>`;
+    savedList.appendChild(r);
+  });
+}
+
+/* ===== event delegation ===== */
+const grid = document.getElementById('productGrid');
+
+grid.addEventListener('click', (e)=>{
+  const add = e.target.closest('[data-action="add"]');
+  const save = e.target.closest('[data-action="save"]');
+  const quick = e.target.closest('[data-action="quick"]');
+  if(add){ addToCart(add.dataset.id); return; }
+  if(save){ saveForLater(save.dataset.id); return; }
+  if(quick){ openModal(quick.dataset.id); return; }
+});
+
+cartList.addEventListener('click', (e)=>{
+  const inc = e.target.closest('[data-q]');
+  const rem = e.target.closest('[data-remove]');
+  if(inc){ changeQty(inc.dataset.id, Number(inc.dataset.q)); return; }
+  if(rem){ removeFromCart(rem.dataset.remove); return; }
+});
+
+savedList.addEventListener('click', (e)=>{
+  const move = e.target.closest('[data-move]');
+  const rem = e.target.closest('[data-sremove]');
+  if(move){ addToCart(move.dataset.move); removeFromSaved(move.dataset.move); return; }
+  if(rem){ removeFromSaved(rem.dataset.sremove); return; }
+});
+
+/* modal buttons */
+$('#addModalBtn')?.addEventListener('click', ()=> { if(currentModalProduct) addToCart(currentModalProduct.id); modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); });
+$('#saveModalBtn')?.addEventListener('click', ()=> { if(currentModalProduct) saveForLater(currentModalProduct.id); modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); });
+
+/* search */
+$('#search').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('#productGrid .card').forEach(card=>{
+    const title = card.querySelector('.title').innerText.toLowerCase();
+    const desc = card.querySelector('.desc').innerText.toLowerCase();
+    card.style.display = (title + ' ' + desc).includes(q) ? '' : 'none';
+  });
+});
+
+/* checkout: POST order to /api/orders and open WhatsApp */
+$('#checkoutBtn').addEventListener('click', async ()=>{
+  if(!cart.length){ alert('Cart is empty'); return; }
+  const order = { id: 'ORD-'+Date.now(), createdAt: new Date().toISOString(), items: cart, total: cart.reduce((s,i)=>s + i.price * i.qty, 0) };
+  try{
+    const res = await fetch('/api/orders', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(order) });
+    if(res.ok){ console.log('Order saved to server'); }
+    else { console.warn('Server returned non-ok response'); }
+  }catch(err){ console.warn('Backend not available', err); }
+  updateWaLink();
+  window.open(waOrder.href, '_blank');
+});
+
+/* theme toggle */
+$('#themeBtn').addEventListener('click', ()=>{
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('modest-theme', next);
+});
+
+/* initial render */
+renderCart();
+renderSaved();
+
+/* demo saved item if none */
+if(!localStorage.getItem('modest_demo')) {
+  localStorage.setItem('modest_demo', '1');
+  saved = [ { id: PRODUCTS[1].id, title:PRODUCTS[1].title, price:PRODUCTS[1].price, thumb: PRODUCTS[1].img } ];
+  persist(); renderSaved();
+}
+
+/* close modal on backdrop click and Esc */
+modalBackdrop.addEventListener('click',(e)=>{ if(e.target===modalBackdrop) { modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); } });
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); }});
+// server.js
+// Usage:
+//   npm init -y
+//   npm i express cors
+//   node server.js
+//
+// The server will serve the static index.html if placed in same folder.
+
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(require('cors')());
+
+// serve static frontend files (index.html, etc) when present
+app.use('/', express.static(path.join(__dirname)));
+
+app.post('/api/orders', (req, res) => {
+  const order = req.body;
+  if(!order || !order.id) return res.status(400).json({error: 'invalid order'});
+  const file = path.join(__dirname, 'orders.json');
+  let arr = [];
+  try {
+    if(fs.existsSync(file)) arr = JSON.parse(fs.readFileSync(file));
+  } catch(e) { console.warn('read orders failed', e); }
+  arr.push(order);
+  try {
+    fs.writeFileSync(file, JSON.stringify(arr, null, 2));
+    console.log('Saved order', order.id);
+    return res.json({ok:true, id: order.id});
+  } catch(err) {
+    console.error('failed to write orders.json', err);
+    return res.status(500).json({ error: 'could not save order' });
+  }
+});
+
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+
+</script>
+</body>
+</html>
+
