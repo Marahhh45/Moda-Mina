@@ -497,12 +497,7 @@
     </div>
   </aside>
 </div>
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>   <!-- 👈 this is the close button -->
-    <div id="modal-body"></div>
-  </div>
-</div>
+
 
 <!-- Product modal -->
 <div class="modal-backdrop" id="modal" aria-hidden="true" role="dialog">
@@ -522,6 +517,12 @@
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
         <div class="price" id="md-price">₦0</div>
         <div style="display:flex;gap:8px">
+          <div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>   <!-- 👈 this is the close button -->
+    <div id="modal-body"></div>
+  </div>
+</div>
           <button class="btn secondary" id="saveModalBtn">Save</button>
           <button class="btn" id="addModalBtn">Add to Cart</button>
         </div>
